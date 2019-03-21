@@ -1,11 +1,11 @@
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
-
+var $ = require('jquery');
 
 var express = require('express');
 	app = express();
 
-	app.get ('/receptes/llista', function(req, res){
+	app.get ('/receptes', function(req, res){
 		//var dbo = res.db("cocina");
 		//var consulta = dbo.getCollection('recetas').find({});
 		MongoClient.connect(url, function(err, db) {
@@ -15,7 +15,8 @@ var express = require('express');
 		  dbo.collection("recetas").find({}).toArray(function(err, result) {
 		    if (err) throw err;
 		   		console.log(result);
-		    	res.send(result);
+					res.send("<li>Hola</li>");
+					
 		    	/*
 		    result.forEach(function(receta){
 		    });
@@ -34,3 +35,7 @@ var express = require('express');
 		var port = server.address().port;
 		console.log('Express server listening on port %s', port);
 	});
+
+function generarDatos(){
+$("body").append("p");
+}
