@@ -1,7 +1,7 @@
 var MongoClient = require('mongodb').MongoClient;
+var ObjectID = require('mongodb').ObjectID;
 var url = "mongodb://localhost:27017/";
 var $ = require('jquery');
-fs = require('fs');
 var bodyParser = require('body-parser');
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
@@ -20,6 +20,7 @@ var express = require('express');
 			  var lista = "";
 		    if (err) throw err;
 				   boton_crear = "<a href=/crear>Añadir</a><br><br>";
+
 				   for (const key in result) {
 
 						li_nombre = "<li>"+result[key]["nombre"]+"</li>";
@@ -57,87 +58,117 @@ var express = require('express');
 					</form>';
 
 	app.get ('/crear', function(req, res){
-		//var dbo = res.db("cocina");
-		//var consulta = dbo.getCollection('recetas').find({});
-		/*
+
+	  res.send('<html><body>'
+		  +formulario
+		  + '</body></html>');
+	});
+
+	app.post ('/crear',urlencodedParser, function(req, res){
+
+		var input_nombre = req.body.nombre;
+		var input_duracion = req.body.duracion;
+		var input_descripcion = req.body.descripcion;
+		var input_tipo = req.body.tipo;
+		
 		MongoClient.connect(url, function(err, db) {
-		  if (err) throw err;
-		  var dbo = db.db("cocina");
+			if (err) throw err;
+			var dbo = db.db("cocina");
+  
+			var myobj = { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo};
+			dbo.collection("recetas").insertOne(myobj, function(err, res) {
+				if (err) throw err;
+				console.log("Nuevo dato insertado");
+				db.close();
+			});		  
+  
+			res.redirect("/");
+  
+		  });			
+		
+	});
+
+	app.get ('/borrar/:id', function(req, res){
+
+		var param_id = req.params.id;
+		
+		MongoClient.connect(url, function(err, db) {
+			if (err) throw err;
+			var dbo = db.db("cocina");
+
+			var myquery = { _id: param_id };
+			dbo.collection("recetas").deleteOne({_id: new ObjectID(param_id)});
+			console.log("Nuevo dato insertado");
+			res.redirect("/");
+  
+		  });	
+		
+	});
+
+
+	app.get ('/editar/:id', function(req, res){
+
+		var param_id = req.params.id;
+		MongoClient.connect(url, function(err, db) {
+			if (err) throw err;
+			var dbo = db.db("cocina");
+			dbo.collection("recetas").findOne({_id: new ObjectID(param_id)}, function(err, resultado) {			
+
+				var formulario_editar = '<form method="POST" action="/editar/'+["_id"]+'">\
+								<label for="nombre">Nombre</label>\
+								<input type="text" name="nombre" id="edad" value="'+resultado["nombre"]+'">\
+								<br>\
+								<label for="duracion">Duracion</label>\
+								<input type="text" name="duracion" value="'+resultado["duracion"]+'">\
+								<br>\
+								<label for="descripcion">Descripcion</label>\
+								<input type="text" name="descripcion" value="'+resultado["descripcion"]+'">\
+								<br>\
+								<label for="tipo">Tipo</label>\
+								<input type="text" name="tipo" value="'+resultado["tipo"]+'">\
+								<br>\
+								<input type="submit">\
+							</form>';
+
+				res.send(formulario_editar);
+			});
+		});
+	});
+
+	app.post ('/editar/:id',urlencodedParser, function(req, res){
+
+		var param_id = req.params.id;
+
+		var input_nombre = req.body.nombre;
+		var input_duracion = req.body.duracion;
+		var input_descripcion = req.body.descripcion;
+		var input_tipo = req.body.tipo;
+		
+		MongoClient.connect(url, function(err, db) {
+			if (err) throw err;
+			var dbo = db.db("cocina");
+
+			var myobj = { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo};
+
+			dbo.collection('recetas').update({_id: new ObjectID(param_id)}, {$set: {nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo}}, function(err, result){
+
+			/*
+			var myquery = { address: "Valley 345" };
+			var newvalues = { $set: {name: "Mickey", address: "Canyon 123" } };
+			dbo.collection("customers").updateOne(myquery, newvalues, function(err, res) {
+				if (err) throw err;
+				console.log("1 document updated");
+				db.close();
+			});
 			*/
-		  res.send('<html><body>'
-			  +formulario
-			  + '</body></html>');
-/*
-		});	
-*/
+
+			console.log("Nuevo dato editado");
+			res.redirect("/");
+  
+		  });	
+		
+		});
 	});
-
-	app.post ('/crear', function(req, res){
-		//var dbo = res.db("cocina");
-		//var consulta = dbo.getCollection('recetas').find({});
-
-		var nombre = req;
-		console.log(nombre);
-		//var duracion = req.body.duracion || '';
-		//var descripcion = req.body.descripcion || '';
-		//var tipo = req.body.tipo || '';
-	
-		res.send('<html><body>'
-			+ req
-			+ formulario
-			+ '</html></body>'
-		);
-		/*
-		MongoClient.connect(url, function(err, db) {
-		  if (err) throw err;
-		  var dbo = db.db("cocina");
-
-			
-			
-
-		  res.send(formulario);
-
-		});	
-		*/
-	});
-
-	var formulario = '<form method="post" action="/nacimiento">'
-    + '<label for="edad">¿Qué edad tienes?</label>'
-    + '<input type="text" name="edad" id="edad">'    
-    + '<input type="submit" value="Enviar"/>'
-    + '</form>';
- 
-var cabecera = '<h1>Naciste el año</h1>';
- 
-app.get('/nacimiento', function (req, res) {
- 
-    res.send('<html><body>'
-            + cabecera
-            + formulario
-            + '</html></body>'
-    );
- 
-});
-
-app.post('/nacimiento',urlencodedParser, function (req, res) {
- 
-    var edad = req.body.edad || '';
-    var nacimiento = '';
- 
-    if (edad != '')
-        nacimiento = 2015 - edad;
- 
-    res.send('<html><body>'
-            + cabecera
-            + '<p>' + nacimiento + '</p>'
-            + formulario
-            + '</html></body>'
-    );
- 
-});
-
-
-
 
 	app.use(function(req, res){
 
