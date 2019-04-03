@@ -150,7 +150,7 @@ var express = require('express');
 
 			var myobj = { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo};
 
-			dbo.collection('recetas').update({_id: new ObjectID(param_id)}, {$set: {nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo}}, function(err, result){
+			dbo.collection('recetas').update({_id: new ObjectID(param_id)}, {$set: myobj}, function(err, result){
 
 			/*
 			var myquery = { address: "Valley 345" };
