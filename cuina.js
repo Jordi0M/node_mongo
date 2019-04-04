@@ -114,7 +114,7 @@ var express = require('express');
 			var dbo = db.db("cocina");
 			dbo.collection("recetas").findOne({_id: new ObjectID(param_id)}, function(err, resultado) {			
 
-				var formulario_editar = '<form method="POST" action="/editar/'+["_id"]+'">\
+				var formulario_editar = '<form method="POST" action="/editar/'+[param_id]+'">\
 								<label for="nombre">Nombre</label>\
 								<input type="text" name="nombre" id="edad" value="'+resultado["nombre"]+'">\
 								<br>\
@@ -137,35 +137,29 @@ var express = require('express');
 
 	app.post ('/editar/:id',urlencodedParser, function(req, res){
 
+		
+		
 		var param_id = req.params.id;
+		console.log(param_id);
+
 
 		var input_nombre = req.body.nombre;
 		var input_duracion = req.body.duracion;
 		var input_descripcion = req.body.descripcion;
 		var input_tipo = req.body.tipo;
-		
+
 		MongoClient.connect(url, function(err, db) {
 			if (err) throw err;
 			var dbo = db.db("cocina");
 
-			var myobj = { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo};
+			var myquery = {_id: new ObjectID(param_id)};
+			var newvalues = { $set: { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo} };
+			dbo.collection('recetas').updateOne(myquery, newvalues, function(err, result){
 
-			dbo.collection('recetas').update({_id: new ObjectID(param_id)}, {$set: myobj}, function(err, result){
-
-			/*
-			var myquery = { address: "Valley 345" };
-			var newvalues = { $set: {name: "Mickey", address: "Canyon 123" } };
-			dbo.collection("customers").updateOne(myquery, newvalues, function(err, res) {
-				if (err) throw err;
-				console.log("1 document updated");
-				db.close();
-			});
-			*/
-
-			console.log("Nuevo dato editado");
-			res.redirect("/");
-  
-		  });	
+				console.log("Nuevo dato editado");
+				res.redirect("/");
+	
+			});	
 		
 		});
 	});
