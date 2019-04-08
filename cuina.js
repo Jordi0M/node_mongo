@@ -109,9 +109,8 @@ var express = require('express');
 						</div>\
 						<div class="form-group">\
 						<div class="col-sm-offset-2 col-sm-10">\
-						<a hr\
 						<a class="btn btn-warning" href="/">Volver</a>\
-						<input class="btn btn-dark" type="submit">\
+						<input class="btn btn-success" type="submit" value="Añadir">\
 						</div>\
 						</div>\
 					</form>';
@@ -207,7 +206,7 @@ var express = require('express');
 								<div class="form-group">\
 								<div class="col-sm-offset-2 col-sm-10">\
 								<a class="btn btn-warning" href="/">Volver</a>\
-								<input class="btn btn-dark" type="submit">\
+								<input class="btn btn-success" type="submit" value="Editar">\
 								</div>\
 								</div>\
 							</form>';
@@ -229,8 +228,6 @@ var express = require('express');
 		
 		
 		var param_id = req.params.id;
-		console.log(param_id);
-
 
 		var input_nombre = req.body.nombre;
 		var input_duracion = req.body.duracion;
@@ -245,7 +242,7 @@ var express = require('express');
 			var newvalues = { $set: { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo} };
 			dbo.collection('recetas').updateOne(myquery, newvalues, function(err, result){
 
-				console.log("Nuevo dato editado");
+				console.log("Dato editado");
 				res.redirect("/");
 	
 			});	
