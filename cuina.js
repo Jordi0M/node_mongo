@@ -123,7 +123,6 @@ var express = require('express');
 						</div>\
 						<div class="form-group">\
 						<div class="col-sm-offset-2 col-sm-10">\
-						<a hr\
 						<a class="btn btn-warning" href="/lista">Volver</a>\
 						<input class="btn btn-dark" type="submit">\
 						</div>\

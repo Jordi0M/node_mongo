@@ -1,0 +1,4 @@
+mongodb
+jquery
+body-parser
+express
