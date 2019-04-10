@@ -11,18 +11,32 @@ var express = require('express');
 	app = express();
 
 	app.get ('/', function(req, res){
+		
+		res.redirect("/lista");
 
-		var busqueda = req.params;
-		console.log(busqueda);
-			
-		//var dbo = res.db("cocina");
-		//var consulta = dbo.getCollection('recetas').find({});
+	});
+
+	app.get ('/lista', function(req, res){
+
+		var busqueda = req.query.buscar;
+
 		MongoClient.connect(url, function(err, db) {
 		  if (err) throw err;
 		  var dbo = db.db("cocina");
 
-		  dbo.collection("recetas").find({}).toArray(function(err, result) {
-			  var lista = "";
+		  if (busqueda == undefined || busqueda == ""){
+			  
+			var buscar_en_bbdd;
+
+		  }else{
+			  busqueda = ".*"+busqueda+".*";
+			var buscar_en_bbdd = {$or: [{nombre: new RegExp(busqueda)}, {duracion: new RegExp(busqueda)}, {descripcion: new RegExp(busqueda)}, {tipo: new RegExp(busqueda)}]};
+
+		  };
+
+		  dbo.collection("recetas").find(buscar_en_bbdd).toArray(function(err, result) {
+
+			var lista = "";
 			if (err) throw err;
 			
 				   inicio_tabla = ' \
@@ -46,8 +60,8 @@ var express = require('express');
 
 						id_asociada = result[key]["_id"];
 					
-						boton_editar = "<th><a class='btn btn-success btn-lg' href=/editar/"+id_asociada+">Editar</a>\t";
-						boton_borrar = "<a class='btn btn-danger btn-lg' href=/borrar/"+id_asociada+">Borrar</a></th>";
+						boton_editar = "<th><a class='btn btn-success btn-lg' href=/lista/editar/"+id_asociada+">Editar</a>\t";
+						boton_borrar = "<a class='btn btn-danger btn-lg' href=/lista/borrar/"+id_asociada+">Borrar</a></th>";
 						
 						fin_tr = "</tr>"
 						
@@ -60,10 +74,10 @@ var express = require('express');
 				   var buscador_mas_boton_crear = '\
 				       <br><br>\
 					   <div class="container">\
-					   <form action="/">\
+					   <form action="/lista">\
 					   <input class="search_input" type="text" name="buscar" placeholder="Search...">\
 					   <input class="btn btn-dark" value="Buscar" type="submit">\
-					   <a class="btn btn-primary" href=/crear>Añadir</a>\
+					   <a class="btn btn-primary" href=/lista/crear>Añadir</a>\
 					   </form>\
 					   <br><br>';
 
@@ -82,7 +96,7 @@ var express = require('express');
 		  });
 		});	
 	});
-	var formulario = '<form class="form-horizontal" method="POST" action="/crear">\
+	var formulario = '<form class="form-horizontal" method="POST" action="/lista/crear">\
 						<div class="form-group">\
 						<label class="control-label col-sm-2" for="nombre"><b>Nombre:</b></label>\
 						<div class="col-sm-10">\
@@ -110,13 +124,13 @@ var express = require('express');
 						<div class="form-group">\
 						<div class="col-sm-offset-2 col-sm-10">\
 						<a hr\
-						<a class="btn btn-warning" href="/">Volver</a>\
+						<a class="btn btn-warning" href="/lista">Volver</a>\
 						<input class="btn btn-dark" type="submit">\
 						</div>\
 						</div>\
 					</form>';
 
-	app.get ('/crear', function(req, res){
+	app.get ('/lista/crear', function(req, res){
 
 		fs.readFile("head.html","utf8",(err,data)=>{
 			if(err){
@@ -129,7 +143,7 @@ var express = require('express');
 
 	});
 
-	app.post ('/crear',urlencodedParser, function(req, res){
+	app.post ('/lista/crear',urlencodedParser, function(req, res){
 
 		var input_nombre = req.body.nombre;
 		var input_duracion = req.body.duracion;
@@ -143,17 +157,17 @@ var express = require('express');
 			var myobj = { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo};
 			dbo.collection("recetas").insertOne(myobj, function(err, res) {
 				if (err) throw err;
-				console.log("Nuevo dato insertado");
+				//console.log("Nuevo dato insertado");
 				db.close();
 			});		  
   
-			res.redirect("/");
+			res.redirect("/lista");
   
 		  });			
 		
 	});
 
-	app.get ('/borrar/:id', function(req, res){
+	app.get ('/lista/borrar/:id', function(req, res){
 
 		var param_id = req.params.id;
 		
@@ -163,15 +177,15 @@ var express = require('express');
 
 			var myquery = { _id: param_id };
 			dbo.collection("recetas").deleteOne({_id: new ObjectID(param_id)});
-			console.log("Nuevo dato insertado");
-			res.redirect("/");
+			//console.log("Nuevo dato insertado");
+			res.redirect("/lista");
   
 		  });	
 		
 	});
 
 
-	app.get ('/editar/:id', function(req, res){
+	app.get ('/lista/editar/:id', function(req, res){
 
 		var param_id = req.params.id;
 		MongoClient.connect(url, function(err, db) {
@@ -179,7 +193,7 @@ var express = require('express');
 			var dbo = db.db("cocina");
 			dbo.collection("recetas").findOne({_id: new ObjectID(param_id)}, function(err, resultado) {			
 
-				var formulario_editar = '<form class="form-horizontal" method="POST" action="/editar/'+[param_id]+'">\
+				var formulario_editar = '<form class="form-horizontal" method="POST" action="/lista/editar/'+[param_id]+'">\
 								<div class="form-group">\
 								<label class="control-label col-sm-2" for="nombre"><b>Nombre:</b></label>\
 								<div class="col-sm-10">\
@@ -206,7 +220,7 @@ var express = require('express');
 								</div>\
 								<div class="form-group">\
 								<div class="col-sm-offset-2 col-sm-10">\
-								<a class="btn btn-warning" href="/">Volver</a>\
+								<a class="btn btn-warning" href="/lista">Volver</a>\
 								<input class="btn btn-dark" type="submit">\
 								</div>\
 								</div>\
@@ -224,13 +238,11 @@ var express = require('express');
 		});
 	});
 
-	app.post ('/editar/:id',urlencodedParser, function(req, res){
+	app.post ('/lista/editar/:id',urlencodedParser, function(req, res){
 
 		
 		
 		var param_id = req.params.id;
-		console.log(param_id);
-
 
 		var input_nombre = req.body.nombre;
 		var input_duracion = req.body.duracion;
@@ -245,8 +257,8 @@ var express = require('express');
 			var newvalues = { $set: { nombre: input_nombre, duracion: input_duracion, descripcion: input_descripcion, tipo: input_tipo} };
 			dbo.collection('recetas').updateOne(myquery, newvalues, function(err, result){
 
-				console.log("Nuevo dato editado");
-				res.redirect("/");
+				//console.log("Nuevo dato editado");
+				res.redirect("/lista");
 	
 			});	
 		
